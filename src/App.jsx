@@ -266,10 +266,12 @@ export default function App() {
     closeModal();
   };
 
+  const inIframe = typeof window !== 'undefined' && (window.self !== window.top || isRunningInTrello());
+
   return (
-    <div className="app-viewport">
+    <div className={`app-viewport ${inIframe ? 'in-trello-iframe' : ''}`}>
       {/* Dev toolbar (hidden inside live Trello iframe) */}
-      {!isLiveTrello && (
+      {!isLiveTrello && !inIframe && (
         <DevToolbar
           simulationMode={simulationMode}
           setSimulationMode={setSimulationMode}
@@ -286,7 +288,8 @@ export default function App() {
 
       {/* Main Modal Dialog */}
       <div className="shifter-modal-dialog">
-        <Header onClose={handleClose} />
+        {/* Only show inner header if running standalone outside Trello modal iframe */}
+        {!inIframe && <Header onClose={handleClose} />}
 
         {/* Stepper only visible during steps 1 through 4 */}
         {currentStep > 0 && (

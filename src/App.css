@@ -10,6 +10,49 @@
   background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
 }
 
+/* When embedded inside Trello Power-Up modal, fill 100% width and height seamlessly */
+.app-viewport.in-trello-iframe {
+  padding: 0 !important;
+  background: #ffffff !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100vh !important;
+}
+
+.app-viewport.in-trello-iframe .shifter-modal-dialog {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  min-height: 100vh !important;
+}
+
+.app-viewport.in-trello-iframe .modal-content-area {
+  padding: 20px 32px 32px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.app-viewport.in-trello-iframe .stepper-container {
+  padding: 16px 32px 8px !important;
+  width: 100% !important;
+}
+
+.app-viewport.in-trello-iframe .cards-table-container {
+  max-height: 380px !important;
+}
+
+.app-viewport.in-trello-iframe .preview-table-container {
+  max-height: 360px !important;
+}
+
+.app-viewport.in-trello-iframe .updating-status-list,
+.app-viewport.in-trello-iframe .partial-status-list {
+  max-height: 280px !important;
+}
+
 /* Dev / Simulator Bar */
 .dev-toolbar {
   width: 100%;
