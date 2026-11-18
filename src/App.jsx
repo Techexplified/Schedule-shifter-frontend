@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Stepper from './components/Stepper';
 import WelcomeView from './components/WelcomeView';
@@ -14,9 +14,11 @@ import TrelloConfigModal from './components/TrelloConfigModal';
 
 import {
   fetchBoardCards,
+  fetchUserBoards,
   updateCardDates,
   closeModal,
-  isRunningInTrello
+  isRunningInTrello,
+  DEFAULT_CREDENTIALS
 } from './services/trelloService';
 import { shiftDate } from './utils/dateHelper';
 import './App.css';
@@ -28,6 +30,8 @@ export default function App() {
   // Cards and board state
   const [cards, setCards] = useState([]);
   const [lists, setLists] = useState([]);
+  const [boards, setBoards] = useState([]);
+  const [selectedBoardId, setSelectedBoardId] = useState(null);
   const [isLiveTrello, setIsLiveTrello] = useState(false);
   const [isMockDisabled, setIsMockDisabled] = useState(() => {
     return localStorage.getItem('trello_disable_mock') === 'true';
@@ -55,46 +59,38 @@ export default function App() {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [credentials, setCredentials] = useState(() => {
     const saved = localStorage.getItem('trello_shifter_creds');
-    return saved ? JSON.parse(saved) : { apiKey: '', apiToken: '' };
+    return saved ? JSON.parse(saved) : DEFAULT_CREDENTIALS;
   });
 
-  const isMountedRef = useRef(true);
-
-  // Refresh board cards
-  const refreshBoardCards = React.useCallback(async () => {
-    const data = await fetchBoardCards();
-    setCards(data.cards);
-    setLists(data.lists);
-    const isLive = data.isLive || isRunningInTrello();
-    setIsLiveTrello(isLive);
-
-    if (isLive) {
-      const cardsWithDates = data.cards.filter((c) => c.hasDates).map((c) => c.id);
-      setSelectedCardIds(cardsWithDates.length > 0 ? cardsWithDates : data.cards.map((c) => c.id));
-    } else {
-      if (data.cards.length > 0) {
-        const ids = data.cards.slice(0, 5).map((c) => c.id);
-        setSelectedCardIds(ids);
-      } else {
-        setSelectedCardIds([]);
+  // Fetch user boards list for switcher
+  useEffect(() => {
+    let ignore = false;
+    fetchUserBoards(credentials).then((userBoards) => {
+      if (!ignore && Array.isArray(userBoards)) {
+        setBoards(userBoards);
       }
-    }
-  }, []);
+    });
+    return () => {
+      ignore = true;
+    };
+  }, [credentials]);
 
-  // Initial load
+  // Initial and reactive board cards loading
   useEffect(() => {
     let ignore = false;
 
-    fetchBoardCards().then((data) => {
+    fetchBoardCards(selectedBoardId, credentials).then((data) => {
       if (!ignore) {
         setCards(data.cards);
         setLists(data.lists);
         const isLive = data.isLive || isRunningInTrello();
         setIsLiveTrello(isLive);
 
-        if (isLive) {
+        if (isLive || selectedBoardId) {
           const cardsWithDates = data.cards.filter((c) => c.hasDates).map((c) => c.id);
-          setSelectedCardIds(cardsWithDates.length > 0 ? cardsWithDates : data.cards.map((c) => c.id));
+          setSelectedCardIds(
+            cardsWithDates.length > 0 ? cardsWithDates : data.cards.map((c) => c.id)
+          );
         } else {
           if (data.cards.length > 0) {
             const ids = data.cards.slice(0, 5).map((c) => c.id);
@@ -109,7 +105,7 @@ export default function App() {
     return () => {
       ignore = true;
     };
-  }, [isMockDisabled]);
+  }, [selectedBoardId, credentials, isMockDisabled]);
 
   const saveCredentials = (newCreds) => {
     setCredentials(newCreds);
@@ -159,7 +155,6 @@ export default function App() {
     const total = selectedCards.length;
     const dayDelta = shiftConfig.direction === 'forward' ? shiftConfig.days : -shiftConfig.days;
 
-    // Initialize status tracking
     const initialStatus = selectedCards.map((c) => ({
       id: c.id,
       name: c.name,
@@ -168,12 +163,10 @@ export default function App() {
     }));
     setCardsStatus(initialStatus);
 
-    // If simulationMode is 'error' and not in live Trello
-    if (!isLiveTrello && simulationMode === 'error') {
+    const isSimulatingError = !isLiveTrello && !selectedBoardId && simulationMode === 'error';
+    if (isSimulatingError) {
       setTimeout(() => {
-        if (isMountedRef.current) {
-          setExecutionState('error');
-        }
+        setExecutionState('error');
       }, 1000);
       return;
     }
@@ -189,9 +182,9 @@ export default function App() {
         prev.map((c, idx) => (idx === i ? { ...c, status: 'updating' } : c))
       );
 
-      // In simulation mode with partial error
       const isFailedInSim =
         !isLiveTrello &&
+        !selectedBoardId &&
         simulationMode === 'partial' &&
         (i === total - 1 || currentCard.name.toLowerCase().includes('deploy'));
 
@@ -263,7 +256,10 @@ export default function App() {
   const handleReset = () => {
     setCurrentStep(0);
     setExecutionState('idle');
-    refreshBoardCards();
+    fetchBoardCards(selectedBoardId, credentials).then((data) => {
+      setCards(data.cards);
+      setLists(data.lists);
+    });
   };
 
   const handleClose = () => {
@@ -272,7 +268,7 @@ export default function App() {
 
   return (
     <div className="app-viewport">
-      {/* Dev toolbar only in standalone preview (hidden inside live Trello) */}
+      {/* Dev toolbar (hidden inside live Trello iframe) */}
       {!isLiveTrello && (
         <DevToolbar
           simulationMode={simulationMode}
@@ -282,6 +278,9 @@ export default function App() {
           isLiveTrello={isLiveTrello}
           isMockDisabled={isMockDisabled}
           onToggleMockData={handleToggleMockData}
+          boards={boards}
+          selectedBoardId={selectedBoardId}
+          onSelectBoard={setSelectedBoardId}
         />
       )}
 

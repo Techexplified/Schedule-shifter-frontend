@@ -8,7 +8,10 @@ export default function DevToolbar({
   onOpenConfig,
   isLiveTrello,
   isMockDisabled,
-  onToggleMockData
+  onToggleMockData,
+  boards = [],
+  selectedBoardId,
+  onSelectBoard
 }) {
   return (
     <div className="dev-toolbar">
@@ -16,7 +19,11 @@ export default function DevToolbar({
         <div className="dev-badge">
           {isLiveTrello ? (
             <span className="live-pill">
-              <ShieldCheck size={12} /> Connected to Trello (Live Data Only)
+              <ShieldCheck size={12} /> Connected to Trello (Live)
+            </span>
+          ) : selectedBoardId ? (
+            <span className="live-pill">
+              <ShieldCheck size={12} /> Live Trello Board
             </span>
           ) : (
             <span className="demo-pill">
@@ -25,7 +32,26 @@ export default function DevToolbar({
           )}
         </div>
 
-        {!isLiveTrello && (
+        {/* Live Board Selector when API credentials are active */}
+        {!isLiveTrello && boards.length > 0 && (
+          <div className="dev-select-group">
+            <label className="dev-label">Board:</label>
+            <select
+              className="dev-select"
+              value={selectedBoardId || ''}
+              onChange={(e) => onSelectBoard(e.target.value || null)}
+            >
+              <option value="">Demo / Sample Data</option>
+              {boards.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {!isLiveTrello && !selectedBoardId && (
           <div className="dev-select-group">
             <label className="dev-label">Step 4 Test:</label>
             <select
@@ -42,12 +68,12 @@ export default function DevToolbar({
       </div>
 
       <div className="dev-toolbar-right">
-        {!isLiveTrello && (
+        {!isLiveTrello && !selectedBoardId && (
           <button
             type="button"
             className="dev-btn"
             onClick={onToggleMockData}
-            title={isMockDisabled ? "Enable sample mock cards" : "Remove mock data completely"}
+            title={isMockDisabled ? 'Enable sample mock cards' : 'Remove mock data completely'}
           >
             {isMockDisabled ? <Eye size={13} /> : <Trash2 size={13} />}
             <span>{isMockDisabled ? 'Restore Mock Data' : 'Remove Mock Data'}</span>

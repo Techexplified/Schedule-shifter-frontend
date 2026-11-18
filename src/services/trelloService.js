@@ -4,6 +4,11 @@
 
 import { INITIAL_CARDS, AVAILABLE_LISTS } from '../data/mockCards';
 
+export const DEFAULT_CREDENTIALS = {
+  apiKey: '763a132092afaa60ccc65a32cb73125a',
+  apiToken: 'ATTA7f49c80fc44f5d6e8ee84577f970cf81f90c9536a3e750b4c50ce704efc98fd7BDB22303'
+};
+
 let trelloInstance = null;
 
 export function getTrelloInstance() {
@@ -11,7 +16,6 @@ export function getTrelloInstance() {
     try {
       trelloInstance = window.TrelloPowerUp.iframe();
     } catch {
-      // Not running inside a Trello iframe
       trelloInstance = null;
     }
   }
@@ -19,17 +23,86 @@ export function getTrelloInstance() {
 }
 
 export function isRunningInTrello() {
+  if (typeof window === 'undefined') return false;
   const urlParams = new URLSearchParams(window.location.search);
   return Boolean(getTrelloInstance() || urlParams.get('trello') === 'true');
 }
 
 /**
- * Fetch cards from active Trello board.
- * NOTE: When running inside Trello, strictly returns real Trello cards (NEVER falls back to mock data).
+ * Fetch all boards for user via REST API
  */
-export async function fetchBoardCards() {
+export async function fetchUserBoards(credentials = DEFAULT_CREDENTIALS) {
+  const { apiKey, apiToken } = credentials;
+  if (!apiKey || !apiToken) return [];
+
+  try {
+    const res = await fetch(
+      `https://api.trello.com/1/members/me/boards?fields=name,id&key=${apiKey}&token=${apiToken}`
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.warn('Failed to fetch user boards:', err);
+    return [];
+  }
+}
+
+/**
+ * Fetch cards and lists for a specific board ID via REST API
+ */
+export async function fetchBoardDataById(boardId, credentials = DEFAULT_CREDENTIALS) {
+  const { apiKey, apiToken } = credentials;
+  if (!boardId || !apiKey || !apiToken) return null;
+
+  try {
+    const [cardsRes, listsRes] = await Promise.all([
+      fetch(
+        `https://api.trello.com/1/boards/${boardId}/cards?fields=id,name,due,start,idList,url&key=${apiKey}&token=${apiToken}`
+      ),
+      fetch(
+        `https://api.trello.com/1/boards/${boardId}/lists?fields=id,name&key=${apiKey}&token=${apiToken}`
+      )
+    ]);
+
+    if (!cardsRes.ok || !listsRes.ok) return null;
+
+    const cards = await cardsRes.json();
+    const lists = await listsRes.json();
+
+    const listMap = (lists || []).reduce((acc, l) => {
+      acc[l.id] = l.name;
+      return acc;
+    }, {});
+
+    const formatted = (cards || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      listId: c.idList,
+      listName: listMap[c.idList] || 'List',
+      start: c.start || null,
+      due: c.due || null,
+      hasDates: Boolean(c.start || c.due),
+      url: c.url
+    }));
+
+    return {
+      cards: formatted,
+      lists: [{ id: 'all', name: 'All Lists' }, ...(lists || [])],
+      isLive: true
+    };
+  } catch (err) {
+    console.warn('Failed to fetch board data by ID:', err);
+    return null;
+  }
+}
+
+/**
+ * Fetch cards from active Trello board iframe or REST API
+ */
+export async function fetchBoardCards(activeBoardId = null, credentials = DEFAULT_CREDENTIALS) {
   const t = getTrelloInstance();
 
+  // 1. Running inside Trello Power-Up iframe
   if (t) {
     try {
       const [cards, lists] = await Promise.all([
@@ -42,7 +115,7 @@ export async function fetchBoardCards() {
         return acc;
       }, {});
 
-      const formatted = (cards || []).map(c => ({
+      const formatted = (cards || []).map((c) => ({
         id: c.id,
         name: c.name,
         listId: c.idList,
@@ -53,7 +126,6 @@ export async function fetchBoardCards() {
         url: c.url
       }));
 
-      // Strictly return real cards from Trello board without mock data
       return {
         cards: formatted,
         lists: [{ id: 'all', name: 'All Lists' }, ...(lists || [])],
@@ -69,8 +141,13 @@ export async function fetchBoardCards() {
     }
   }
 
-  // Standalone preview fallback:
-  // Check if user has explicitly disabled or cleared mock data
+  // 2. If boardId is specified or credentials exist, fetch live data from Trello REST API
+  if (activeBoardId && credentials.apiKey && credentials.apiToken) {
+    const liveData = await fetchBoardDataById(activeBoardId, credentials);
+    if (liveData) return liveData;
+  }
+
+  // 3. Fallback to mock data if user hasn't disabled it
   const isMockDisabled = localStorage.getItem('trello_disable_mock') === 'true';
 
   return {
@@ -81,9 +158,9 @@ export async function fetchBoardCards() {
 }
 
 /**
- * Seed sample cards into a real Trello board list (if user wants to push sample cards to Trello)
+ * Seed sample cards into a real Trello board list
  */
-export async function seedSampleCardsToTrello(targetListId, credentials = {}) {
+export async function seedSampleCardsToTrello(targetListId, credentials = DEFAULT_CREDENTIALS) {
   const { apiKey, apiToken } = credentials;
   if (!apiKey || !apiToken) {
     throw new Error('Trello API Key and Token are required to create cards.');
@@ -113,12 +190,11 @@ export async function seedSampleCardsToTrello(targetListId, credentials = {}) {
 }
 
 /**
- * Update card dates via Trello REST API or mock
+ * Update card dates via Trello REST API
  */
-export async function updateCardDates(cardId, { start, due }, credentials = {}) {
+export async function updateCardDates(cardId, { start, due }, credentials = DEFAULT_CREDENTIALS) {
   const { apiKey, apiToken } = credentials;
 
-  // If credentials are provided, use real Trello REST API
   if (apiKey && apiToken) {
     const params = new URLSearchParams({
       key: apiKey,
@@ -138,8 +214,8 @@ export async function updateCardDates(cardId, { start, due }, credentials = {}) 
     return await res.json();
   }
 
-  // Simulated delay for realism when running in demo/mock mode
-  await new Promise(r => setTimeout(r, 400));
+  // Simulated delay for demo/mock mode
+  await new Promise((r) => setTimeout(r, 400));
   return { success: true };
 }
 
