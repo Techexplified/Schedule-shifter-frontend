@@ -1,0 +1,61 @@
+/* Global base styles */
+:root {
+  --primary: #0065FF;
+  --primary-hover: #0747A6;
+  --primary-light: #E9F2FF;
+  --primary-subtle: #F4F8FE;
+  
+  --text-primary: #172B4D;
+  --text-secondary: #5E6C84;
+  --text-muted: #8993A4;
+
+  --border-light: #EBECF0;
+  --border-medium: #DFE1E6;
+  --border-focus: #4C9AFF;
+
+  --bg-page: #F4F5F7;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #FAFBFC;
+
+  --success: #16A34A;
+  --success-bg: #F0FDF4;
+  --success-border: #BBF7D0;
+  --success-text: #166534;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FDE68A;
+  --warning-text: #92400E;
+
+  --danger: #EF4444;
+  --danger-bg: #FEF2F2;
+  --danger-border: #FECACA;
+  --danger-text: #991B1B;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-sm: 0 1px 2px rgba(9, 30, 66, 0.08);
+  --shadow-md: 0 4px 12px rgba(9, 30, 66, 0.12);
+  --shadow-lg: 0 12px 32px rgba(9, 30, 66, 0.16);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-primary);
+  background-color: #E2E8F0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button, input, select {
+  font-family: inherit;
+}
