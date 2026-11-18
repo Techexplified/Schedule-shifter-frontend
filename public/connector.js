@@ -1,25 +1,26 @@
 /* global window */
-const ICON = 'https://cdn-icons-png.flaticon.com/512/747/747310.png';
+const ICON_URL = 'https://schedule-shifter-frontend.vercel.app/calendar-icon.svg';
+const MODAL_URL = 'https://schedule-shifter-frontend.vercel.app/?trello=true';
 
 window.TrelloPowerUp.initialize({
   'board-buttons': function () {
     return [
       {
         icon: {
-          light: ICON,
-          dark: ICON
+          light: ICON_URL,
+          dark: ICON_URL
         },
         text: 'Schedule Shifter',
         callback: function (t) {
           return t.modal({
             title: 'Schedule Shifter',
-            url: './index.html?trello=true',
+            url: MODAL_URL,
             accentColor: '#0065FF',
             height: 640,
             fullscreen: false,
             actions: [
               {
-                icon: ICON,
+                icon: ICON_URL,
                 alt: 'Close',
                 position: 'right',
                 callback: function (tClose) {
@@ -35,12 +36,12 @@ window.TrelloPowerUp.initialize({
   'card-buttons': function () {
     return [
       {
-        icon: ICON,
+        icon: ICON_URL,
         text: 'Shift Schedule',
         callback: function (t) {
           return t.modal({
             title: 'Schedule Shifter',
-            url: './index.html?trello=true',
+            url: MODAL_URL,
             accentColor: '#0065FF',
             height: 640,
             fullscreen: false
