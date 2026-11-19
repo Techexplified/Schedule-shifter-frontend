@@ -288,8 +288,8 @@ export default function App() {
 
       {/* Main Modal Dialog */}
       <div className="shifter-modal-dialog">
-        {/* Only show inner header if running standalone outside Trello modal iframe */}
-        {!inIframe && <Header onClose={handleClose} />}
+        {/* Header with Calendar Icon, 'Schedule Shifter' title, and close button (shown across all screens) */}
+        <Header onClose={handleClose} />
 
         {/* Stepper only visible during steps 1 through 4 */}
         {currentStep > 0 && (
