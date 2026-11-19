@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Shifter — Screenshots & Image Links Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 32px 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    p.subtitle {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+    }
+    .img-box {
+      width: 100%;
+      height: 180px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .img-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .card-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    .url-input {
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #334155;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+    button.btn {
+      flex: 1;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    button.btn-primary {
+      background: #0065ff;
+      color: #ffffff;
+    }
+    button.btn-primary:hover {
+      background: #0052cc;
+    }
+    a.btn-secondary {
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      text-decoration: none;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    a.btn-secondary:hover {
+      background: #f1f5f9;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Schedule Shifter — Image Assets & Screenshot Links</h1>
+      <p class="subtitle">Click "Copy Link" to copy the direct live HTTPS URL for any image.</p>
+    </header>
+
+    <div class="grid" id="gallery-grid"></div>
+  </div>
+
+  <div class="toast" id="toast">Link copied to clipboard!</div>
+
+  <script>
+    const origin = window.location.origin;
+
+    const IMAGES = [
+      { name: "Step 0: Welcome / Hero Screen", file: "step-0-welcome.jpg" },
+      { name: "Step 1: Select Cards Table", file: "step-1-select-cards.jpg" },
+      { name: "Step 2: Set Schedule Shift", file: "step-2-set-shift.jpg" },
+      { name: "Step 3: Preview Changes Diff", file: "step-3-preview.jpg" },
+      { name: "Step 4A: Updating Progress Live", file: "step-4a-updating.jpg" },
+      { name: "Step 4B: Schedule Updated (Success)", file: "step-4b-success.jpg" },
+      { name: "Step 4C: Completed with Issues", file: "step-4c-issues.jpg" },
+      { name: "Step 4D: No Cards Updated (Error)", file: "step-4d-error.jpg" },
+      { name: "Welcome Screen Header Highlight", file: "welcome-header.jpg" },
+      { name: "Trello Board Real View", file: "trello-board-view.jpg" },
+      { name: "Trello Card Dates Edit", file: "trello-card-dates.jpg" },
+      { name: "Trello Modal Open View", file: "trello-modal-view.jpg" },
+      { name: "Trello Power-Up Enabled", file: "trello-powerup-enabled.jpg" },
+      { name: "Trello Connector URL Setup", file: "trello-connector-url.png" },
+      { name: "Trello Callback URL Setup", file: "trello-callback-url.png" },
+      { name: "Vercel Project Setup", file: "vercel-setup.png" }
+    ];
+
+    const grid = document.getElementById('gallery-grid');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    IMAGES.forEach(item => {
+      const fullUrl = `${origin}/screenshots/${item.file}`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="img-box">
+          <img src="/screenshots/${item.file}" alt="${item.name}" loading="lazy" />
+        </div>
+        <div class="card-body">
+          <div class="card-title">${item.name}</div>
+          <input type="text" readonly class="url-input" value="${fullUrl}" onclick="this.select()" />
+          <div class="actions">
+            <button class="btn btn-primary" onclick="navigator.clipboard.writeText('${fullUrl}'); showToast('Copied: ${item.file}')">
+              Copy Link
+            </button>
+            <a href="${fullUrl}" target="_blank" class="btn-secondary">Open ↗</a>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>
